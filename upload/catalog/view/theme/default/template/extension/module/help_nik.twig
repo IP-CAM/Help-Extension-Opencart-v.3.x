@@ -1,0 +1,41 @@
+{{ header }}
+<div id="help-nik" class="container">
+  <ul class="breadcrumb">
+    {% for breadcrumb in breadcrumbs %}
+    <li><a href="{{ breadcrumb.href }}">{{ breadcrumb.text }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="row">{{ column_left }}
+    {% if column_left and column_right %}
+    {% set class = 'col-sm-6' %}
+    {% elseif column_left or column_right %}
+    {% set class = 'col-sm-9' %}
+    {% else %}
+    {% set class = 'col-sm-12' %}
+    {% endif %}
+    <div id="content" class="{{ class }}">
+      {{ content_top }}
+
+      <h2>{{ text_support }}</h2>
+      <div class="row">
+        {% for support in supports %}
+          <div class="col-sm-3">
+            <a href="{{ support.link }}" style="height: 200px; background-color: #d1f2ff; padding: 10px; display: block;">
+              {% if support.thumb %}
+                <div><img src="{{ support.thumb }}" alt="{{ support.title }}"></div>
+              {% endif %}
+              <h4>{{ support.title }}</h4>
+              <p>{{ support.description }}</p>
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+
+      <h2>{{ text_certificate }}</h2>
+
+      {{ content_bottom }}
+    </div>
+    {{ column_right }}
+  </div>
+</div>
+{{ footer }}
