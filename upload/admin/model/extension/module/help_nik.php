@@ -20,6 +20,7 @@ class ModelExtensionModuleHelpNik extends Model {
 
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "help_category` (
 			`help_category_id` INT(11) NOT NULL AUTO_INCREMENT,
+			`parent_id` INT(11) NOT NULL DEFAULT 0,
 			`sort_order` INT(3) NOT NULL DEFAULT 0,
 			`status` TINYINT(1) NOT NULL DEFAULT 1,
 			PRIMARY KEY (`help_category_id`)
@@ -54,10 +55,9 @@ class ModelExtensionModuleHelpNik extends Model {
 
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "help_article` (
 			`help_article_id` INT(11) NOT NULL AUTO_INCREMENT,
-			`materials_category_id` INT(11) NOT NULL,
-			`image` VARCHAR(255) NOT NULL,
-			`status` TINYINT(1) NOT NULL DEFAULT 1,
+			`help_category_id` INT(11) NOT NULL,
 			`sort_order` INT(3) NOT NULL DEFAULT 0,
+			`status` TINYINT(1) NOT NULL DEFAULT 1,
 			PRIMARY KEY (`help_article_id`)
 		) ENGINE=MyISAM DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci");
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "help_article_description` (
@@ -81,21 +81,31 @@ class ModelExtensionModuleHelpNik extends Model {
             `store_id` INT(11) NOT NULL,
             PRIMARY KEY (`help_article_id`, `store_id`)
 		) ENGINE=MyISAM DEFAULT COLLATE=utf8_general_ci;");
+
+        $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "help_settings` (
+            `id` INT(11) NOT NULL AUTO_INCREMENT,
+            `search_help_categories` TEXT NOT NULL,
+            `display_help_categories` TEXT NOT NULL,
+            PRIMARY KEY (`id`)
+		) ENGINE=MyISAM DEFAULT COLLATE=utf8_general_ci;");
     }
 
     public function uninstall() {
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_categories`");
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_categories_description`");
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_categories_to_layout`");
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_categories_to_store`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_category`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_category_description`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_category_path`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_category_to_layout`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_category_to_store`");
 
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials`");
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_description`");
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_to_layout`");
-        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "materials_to_store`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_article`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_article_description`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_article_to_layout`");
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_article_to_store`");
 
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_support`");
         $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_support_description`");
+
+        $this->db->query("DROP TABLE IF EXISTS `" . DB_PREFIX . "help_settings`");
     }
 
     public function addHelpSupport($data) {
@@ -178,7 +188,7 @@ class ModelExtensionModuleHelpNik extends Model {
     }
 
     public function addHelpCategory($data) {
-        $this->db->query("INSERT INTO " . DB_PREFIX . "help_category SET `sort_order` = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "'");
+        $this->db->query("INSERT INTO " . DB_PREFIX . "help_category SET parent_id = '" . (int)$data['parent_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "'");
 
         $help_category_id = $this->db->getLastId();
 
@@ -201,7 +211,7 @@ class ModelExtensionModuleHelpNik extends Model {
 
         if (isset($data['help_category_store'])) {
             foreach ($data['help_category_store'] as $store_id) {
-                $this->db->query("INSERT INTO " . DB_PREFIX . "help_category_to_store SET materials_category_id = '" . (int)$help_category_id . "', store_id = '" . (int)$store_id . "'");
+                $this->db->query("INSERT INTO " . DB_PREFIX . "help_category_to_store SET help_category_id = '" . (int)$help_category_id . "', store_id = '" . (int)$store_id . "'");
             }
         }
 
@@ -228,7 +238,7 @@ class ModelExtensionModuleHelpNik extends Model {
     }
 
     public function editHelpCategory($help_category_id, $data) {
-        $this->db->query("UPDATE " . DB_PREFIX . "help_category SET `sort_order` = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "' WHERE help_category_id = '" . (int)$help_category_id . "'");
+        $this->db->query("UPDATE " . DB_PREFIX . "help_category SET parent_id = '" . (int)$data['parent_id'] . "', `sort_order` = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "' WHERE help_category_id = '" . (int)$help_category_id . "'");
 
         $this->db->query("DELETE FROM " . DB_PREFIX . "help_category_description WHERE help_category_id = '" . (int)$help_category_id . "'");
 
@@ -242,7 +252,7 @@ class ModelExtensionModuleHelpNik extends Model {
         if ($query->rows) {
             foreach ($query->rows as $help_category_path) {
                 // Delete the path below the current one
-                $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category_path` WHERE help_category_id = '" . (int)$help_category_path['category_id'] . "' AND `level` < '" . (int)$help_category_path['level'] . "'");
+                $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category_path` WHERE help_category_id = '" . (int)$help_category_path['help_category_id'] . "' AND `level` < '" . (int)$help_category_path['level'] . "'");
 
                 $path = array();
 
@@ -254,7 +264,7 @@ class ModelExtensionModuleHelpNik extends Model {
                 }
 
                 // Get whats left of the nodes current path
-                $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "help_category_path` WHERE help_category_id = '" . (int)$help_category_path['category_id'] . "' ORDER BY `level` ASC");
+                $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "help_category_path` WHERE help_category_id = '" . (int)$help_category_path['help_category_id'] . "' ORDER BY `level` ASC");
 
                 foreach ($query->rows as $result) {
                     $path[] = $result['path_id'];
@@ -264,7 +274,7 @@ class ModelExtensionModuleHelpNik extends Model {
                 $level = 0;
 
                 foreach ($path as $path_id) {
-                    $this->db->query("REPLACE INTO `" . DB_PREFIX . "help_category_path` SET help_category_id = '" . (int)$help_category_path['category_id'] . "', `path_id` = '" . (int)$path_id . "', `level` = '" . (int)$level . "'");
+                    $this->db->query("REPLACE INTO `" . DB_PREFIX . "help_category_path` SET help_category_id = '" . (int)$help_category_path['help_category_id'] . "', `path_id` = '" . (int)$path_id . "', `level` = '" . (int)$level . "'");
 
                     $level++;
                 }
@@ -319,7 +329,7 @@ class ModelExtensionModuleHelpNik extends Model {
     }
 
     public function deleteHelpCategory($help_category_id) {
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category` WHERE materials_category_id = '" . (int)$help_category_id . "'");
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category` WHERE help_category_id = '" . (int)$help_category_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category_description` WHERE help_category_id = '" . (int)$help_category_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category_to_store` WHERE help_category_id = '" . (int)$help_category_id . "'");
         $this->db->query("DELETE FROM `" . DB_PREFIX . "help_category_to_layout` WHERE help_category_id = '" . (int)$help_category_id . "'");
@@ -328,7 +338,7 @@ class ModelExtensionModuleHelpNik extends Model {
         $this->cache->delete('help_category');
     }
 
-    public function getHelpCategory($materials_category_id) {
+    public function getHelpCategory($help_category_id) {
         $query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "help_category WHERE help_category_id = '" . (int)$help_category_id . "'");
 
         return $query->row;
@@ -337,6 +347,10 @@ class ModelExtensionModuleHelpNik extends Model {
     public function getHelpCategories($data = array()) {
         if ($data) {
             $sql = "SELECT * FROM " . DB_PREFIX . "help_category hc LEFT JOIN " . DB_PREFIX . "help_category_description hcd ON (hc.help_category_id = hcd.help_category_id) WHERE hcd.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+
+            if (!empty($data['filter_name'])) {
+                $sql .= " AND hcd.title LIKE '%" . $this->db->escape($data['filter_name']) . "%'";
+            }
 
             $sort_data = array(
                 'hcd.title',
@@ -408,6 +422,18 @@ class ModelExtensionModuleHelpNik extends Model {
         return $help_category_description_data;
     }
 
+    public function getHelpCategoryParent($help_category_id) {
+        $query = $this->db->query("SELECT `title` FROM " . DB_PREFIX . "help_category_description WHERE help_category_id = '" . (int)$help_category_id . "' AND language_id = '" . (int)$this->config->get('config_language_id') . "'");
+
+        return isset($query->row['title']) ? $query->row['title'] : '';
+    }
+
+    public function getHelpCategoryPath($help_category_id) {
+        $query = $this->db->query("SELECT help_category_id, path_id, `level` FROM " . DB_PREFIX . "help_category_path WHERE help_category_id = '" . (int)$help_category_id . "'");
+
+        return $query->rows;
+    }
+
     public function getHelpCategoryStores($help_category_id) {
         $help_category_store_data = array();
 
@@ -456,119 +482,130 @@ class ModelExtensionModuleHelpNik extends Model {
         return $query->row['total'];
     }
 
+    public function saveHelpSettings($data) {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_settings`");
 
-    // Help Articles Functions
-
-    public function addMaterial($data) {
-        $this->db->query("INSERT INTO " . DB_PREFIX . "materials SET materials_category_id = '" . (int)$data['materials_category_id'] . "', image = '" . $this->db->escape($data['image']) . "', sort_order = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "'");
-
-        $material_id = $this->db->getLastId();
-
-        foreach ($data['materials_description'] as $language_id => $value) {
-            $this->db->query("INSERT INTO " . DB_PREFIX . "materials_description SET material_id = '" . (int)$material_id . "', language_id = '" . (int)$language_id . "', title = '" . $this->db->escape($value['title']) . "', description = '" . $this->db->escape($value['description']) . "', meta_title = '" . $this->db->escape($value['meta_title']) . "', meta_description = '" . $this->db->escape($value['meta_description']) . "', meta_keyword = '" . $this->db->escape($value['meta_keyword']) . "'");
-        }
-
-        if (isset($data['materials_store'])) {
-            foreach ($data['materials_store'] as $store_id) {
-                $this->db->query("INSERT INTO " . DB_PREFIX . "materials_to_store SET material_id = '" . (int)$material_id . "', store_id = '" . (int)$store_id . "'");
-            }
-        }
-
-        // SEO URL
-        if (isset($data['materials_seo_url'])) {
-            foreach ($data['materials_seo_url'] as $store_id => $language) {
-                foreach ($language as $language_id => $keyword) {
-                    if (!empty($keyword)) {
-                        $this->db->query("INSERT INTO " . DB_PREFIX . "seo_url SET store_id = '" . (int)$store_id . "', language_id = '" . (int)$language_id . "', query = 'material_id=" . (int)$material_id . "', keyword = '" . $this->db->escape($keyword) . "'");
-                    }
-                }
-            }
-        }
-
-        if (isset($data['materials_layout'])) {
-            foreach ($data['materials_layout'] as $store_id => $layout_id) {
-                $this->db->query("INSERT INTO " . DB_PREFIX . "materials_to_layout SET material_id = '" . (int)$material_id . "', store_id = '" . (int)$store_id . "', layout_id = '" . (int)$layout_id . "'");
-            }
-        }
-
-        $this->cache->delete('materials');
-
-        return $material_id;
+        $this->db->query("INSERT INTO " . DB_PREFIX . "help_settings SET `search_help_categories` = '" . $this->db->escape(json_encode($data['search_help_categories'])). "', `display_help_categories` = '" . $this->db->escape(json_encode($data['display_help_categories'])) . "'");
     }
 
-    public function editMaterial($material_id, $data) {
-        $this->db->query("UPDATE " . DB_PREFIX . "materials SET image = '" . $this->db->escape($data['image']) . "', sort_order = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "' WHERE material_id = '" . (int)$material_id . "'");
-
-        $this->db->query("DELETE FROM " . DB_PREFIX . "materials_description WHERE material_id = '" . (int)$material_id . "'");
-
-        foreach ($data['materials_description'] as $language_id => $value) {
-            $this->db->query("INSERT INTO " . DB_PREFIX . "materials_description SET material_id = '" . (int)$material_id . "', language_id = '" . (int)$language_id . "', title = '" . $this->db->escape($value['title']) . "', description = '" . $this->db->escape($value['description']) . "', meta_title = '" . $this->db->escape($value['meta_title']) . "', meta_description = '" . $this->db->escape($value['meta_description']) . "', meta_keyword = '" . $this->db->escape($value['meta_keyword']) . "'");
-        }
-
-        $this->db->query("DELETE FROM " . DB_PREFIX . "materials_to_store WHERE material_id = '" . (int)$material_id . "'");
-
-        if (isset($data['materials_store'])) {
-            foreach ($data['materials_store'] as $store_id) {
-                $this->db->query("INSERT INTO " . DB_PREFIX . "materials_to_store SET material_id = '" . (int)$material_id . "', store_id = '" . (int)$store_id . "'");
-            }
-        }
-
-        $this->db->query("DELETE FROM " . DB_PREFIX . "seo_url WHERE query = 'material_id=" . (int)$material_id . "'");
-
-        if (isset($data['materials_seo_url'])) {
-            foreach ($data['materials_seo_url'] as $store_id => $language) {
-                foreach ($language as $language_id => $keyword) {
-                    if (trim($keyword)) {
-                        $this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET store_id = '" . (int)$store_id . "', language_id = '" . (int)$language_id . "', query = 'material_id=" . (int)$material_id . "', keyword = '" . $this->db->escape($keyword) . "'");
-                    }
-                }
-            }
-        }
-
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "materials_to_layout` WHERE material_id = '" . (int)$material_id . "'");
-
-        if (isset($data['materials_layout'])) {
-            foreach ($data['materials_layout'] as $store_id => $layout_id) {
-                $this->db->query("INSERT INTO `" . DB_PREFIX . "materials_to_layout` SET material_id = '" . (int)$material_id . "', store_id = '" . (int)$store_id . "', layout_id = '" . (int)$layout_id . "'");
-            }
-        }
-
-        $this->cache->delete('materials');
-    }
-
-    public function deleteMaterial($material_id) {
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "materials` WHERE material_id = '" . (int)$material_id . "'");
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "materials_description` WHERE material_id = '" . (int)$material_id . "'");
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "materials_to_store` WHERE material_id = '" . (int)$material_id . "'");
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "materials_to_layout` WHERE material_id = '" . (int)$material_id . "'");
-        $this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'material_id=" . (int)$material_id . "'");
-
-        $this->cache->delete('materials');
-    }
-
-    public function getMaterial($material_id) {
-        $query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "materials WHERE material_id = '" . (int)$material_id . "'");
+    public function getHelpSettings() {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "help_settings`");
 
         return $query->row;
     }
 
-    public function getMaterials($data = array()) {
+    // Help Articles Functions
+
+    public function addHelpArticle($data) {
+        $this->db->query("INSERT INTO " . DB_PREFIX . "help_article SET help_category_id = '" . (int)$data['help_category_id'] . "', sort_order = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "'");
+
+        $help_article_id = $this->db->getLastId();
+
+        foreach ($data['help_article_description'] as $language_id => $value) {
+            $this->db->query("INSERT INTO " . DB_PREFIX . "help_article_description SET help_article_id = '" . (int)$help_article_id . "', language_id = '" . (int)$language_id . "', title = '" . $this->db->escape($value['title']) . "', description = '" . $this->db->escape($value['description']) . "', meta_title = '" . $this->db->escape($value['meta_title']) . "', meta_description = '" . $this->db->escape($value['meta_description']) . "', meta_keyword = '" . $this->db->escape($value['meta_keyword']) . "'");
+        }
+
+        if (isset($data['help_article_store'])) {
+            foreach ($data['help_article_store'] as $store_id) {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "help_article_to_store SET help_article_id = '" . (int)$help_article_id . "', store_id = '" . (int)$store_id . "'");
+            }
+        }
+
+        // SEO URL
+        if (isset($data['help_article_seo_url'])) {
+            foreach ($data['help_article_seo_url'] as $store_id => $language) {
+                foreach ($language as $language_id => $keyword) {
+                    if (!empty($keyword)) {
+                        $this->db->query("INSERT INTO " . DB_PREFIX . "seo_url SET store_id = '" . (int)$store_id . "', language_id = '" . (int)$language_id . "', query = 'help_article_id=" . (int)$help_article_id . "', keyword = '" . $this->db->escape($keyword) . "'");
+                    }
+                }
+            }
+        }
+
+        if (isset($data['help_article_layout'])) {
+            foreach ($data['help_article_layout'] as $store_id => $layout_id) {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "help_article_to_layout SET help_article_id = '" . (int)$help_article_id . "', store_id = '" . (int)$store_id . "', layout_id = '" . (int)$layout_id . "'");
+            }
+        }
+
+        $this->cache->delete('help_article');
+
+        return $help_article_id;
+    }
+
+    public function editHelpArticle($help_article_id, $data) {
+        $this->db->query("UPDATE " . DB_PREFIX . "materials SET help_category_id = '" . (int)$data['help_category_id'] . "', sort_order = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "' WHERE help_article_id = '" . (int)$help_article_id . "'");
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "help_article_description WHERE help_article_id = '" . (int)$help_article_id . "'");
+
+        foreach ($data['help_article_description'] as $language_id => $value) {
+            $this->db->query("INSERT INTO " . DB_PREFIX . "help_article_description SET help_article_id = '" . (int)$help_article_id . "', language_id = '" . (int)$language_id . "', title = '" . $this->db->escape($value['title']) . "', description = '" . $this->db->escape($value['description']) . "', meta_title = '" . $this->db->escape($value['meta_title']) . "', meta_description = '" . $this->db->escape($value['meta_description']) . "', meta_keyword = '" . $this->db->escape($value['meta_keyword']) . "'");
+        }
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "help_article_to_store WHERE help_article_id = '" . (int)$help_article_id . "'");
+
+        if (isset($data['help_article_store'])) {
+            foreach ($data['materials_store'] as $store_id) {
+                $this->db->query("INSERT INTO " . DB_PREFIX . "help_article_to_store SET help_article_id = '" . (int)$help_article_id . "', store_id = '" . (int)$store_id . "'");
+            }
+        }
+
+        $this->db->query("DELETE FROM " . DB_PREFIX . "seo_url WHERE query = 'help_article_id=" . (int)$help_article_id . "'");
+
+        if (isset($data['help_article_seo_url'])) {
+            foreach ($data['help_article_seo_url'] as $store_id => $language) {
+                foreach ($language as $language_id => $keyword) {
+                    if (trim($keyword)) {
+                        $this->db->query("INSERT INTO `" . DB_PREFIX . "seo_url` SET store_id = '" . (int)$store_id . "', language_id = '" . (int)$language_id . "', query = 'help_article_id=" . (int)$help_article_id . "', keyword = '" . $this->db->escape($keyword) . "'");
+                    }
+                }
+            }
+        }
+
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_article_to_layout` WHERE help_article_id = '" . (int)$help_article_id . "'");
+
+        if (isset($data['help_article_layout'])) {
+            foreach ($data['help_article_layout'] as $store_id => $layout_id) {
+                $this->db->query("INSERT INTO `" . DB_PREFIX . "help_article_to_layout` SET help_article_id = '" . (int)$help_article_id . "', store_id = '" . (int)$store_id . "', layout_id = '" . (int)$layout_id . "'");
+            }
+        }
+
+        $this->cache->delete('help_article');
+    }
+
+    public function deleteHelpArticle($help_article_id) {
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_article` WHERE help_article_id = '" . (int)$help_article_id . "'");
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_article_description` WHERE help_article_id = '" . (int)$help_article_id . "'");
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_article_to_store` WHERE help_article_id = '" . (int)$help_article_id . "'");
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "help_article_to_layout` WHERE help_article_id = '" . (int)$help_article_id . "'");
+        $this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'help_article_id=" . (int)$help_article_id . "'");
+
+        $this->cache->delete('help_article');
+    }
+
+    public function getHelpArticle($help_article_id) {
+        $query = $this->db->query("SELECT DISTINCT * FROM " . DB_PREFIX . "help_article WHERE help_article_id = '" . (int)$help_article_id . "'");
+
+        return $query->row;
+    }
+
+    public function getHelpArticles($data = array()) {
         if ($data) {
-            $sql = "SELECT * FROM " . DB_PREFIX . "materials m LEFT JOIN " . DB_PREFIX . "materials_description md ON (m.material_id = md.material_id) WHERE md.language_id = '" . (int)$this->config->get('config_language_id') . "'";
+            $sql = "SELECT * FROM " . DB_PREFIX . "help_article ha LEFT JOIN " . DB_PREFIX . "help_article_description had ON (ha.help_article_id = had.help_article_id) WHERE had.language_id = '" . (int)$this->config->get('config_language_id') . "'";
 
             $sort_data = array(
-                'md.title',
-                'm.sort_order'
+                'had.title',
+                'ha.sort_order'
             );
 
-            if (isset($data['materials_category_id'])) {
-                $sql .= " AND m.materials_category_id = '" . (int)$data['materials_category_id'] . "'";
+            if (isset($data['help_category_id'])) {
+                $sql .= " AND ha.help_category_id = '" . (int)$data['help_category_id'] . "'";
             }
 
             if (isset($data['sort']) && in_array($data['sort'], $sort_data)) {
                 $sql .= " ORDER BY " . $data['sort'];
             } else {
-                $sql .= " ORDER BY md.title";
+                $sql .= " ORDER BY had.title";
             }
 
             if (isset($data['order']) && ($data['order'] == 'DESC')) {
@@ -594,27 +631,27 @@ class ModelExtensionModuleHelpNik extends Model {
 
             return $query->rows;
         } else {
-            $material_data = $this->cache->get('materials.' . (int)$this->config->get('config_language_id'));
+            $help_articles_data = $this->cache->get('help_article.' . (int)$this->config->get('config_language_id'));
 
-            if (!$material_data) {
-                $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "materials m LEFT JOIN " . DB_PREFIX . "materials_description md ON (m.material_id = md.material_id) WHERE md.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY md.title");
+            if (!$help_articles_data) {
+                $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article ha LEFT JOIN " . DB_PREFIX . "help_article_description had ON (ha.help_article_id = had.help_article_id) WHERE had.language_id = '" . (int)$this->config->get('config_language_id') . "' ORDER BY had.title");
 
-                $material_data = $query->rows;
+                $help_articles_data = $query->rows;
 
-                $this->cache->set('materials.' . (int)$this->config->get('config_language_id'), $material_data);
+                $this->cache->set('help_article.' . (int)$this->config->get('config_language_id'), $help_articles_data);
             }
 
-            return $material_data;
+            return $help_articles_data;
         }
     }
 
-    public function getMaterialDescriptions($material_id) {
-        $material_description_data = array();
+    public function getHelpArticleDescriptions($help_article_id) {
+        $help_article_description_data = array();
 
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "materials_description WHERE material_id = '" . (int)$material_id . "'");
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article_description WHERE help_article_id = '" . (int)$help_article_id . "'");
 
         foreach ($query->rows as $result) {
-            $material_description_data[$result['language_id']] = array(
+            $help_article_description_data[$result['language_id']] = array(
                 'title'            => $result['title'],
                 'description'      => $result['description'],
                 'meta_title'       => $result['meta_title'],
@@ -623,53 +660,53 @@ class ModelExtensionModuleHelpNik extends Model {
             );
         }
 
-        return $material_description_data;
+        return $help_article_description_data;
     }
 
-    public function getMaterialStores($material_id) {
-        $material_store_data = array();
+    public function getHelpArticleStores($help_article_id) {
+        $help_article_store_data = array();
 
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "materials_to_store WHERE material_id = '" . (int)$material_id . "'");
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article_to_store WHERE help_article_id = '" . (int)$help_article_id . "'");
 
         foreach ($query->rows as $result) {
-            $material_store_data[] = $result['store_id'];
+            $help_article_store_data[] = $result['store_id'];
         }
 
-        return $material_store_data;
+        return $help_article_store_data;
     }
 
-    public function getMaterialSeoUrls($material_id) {
-        $material_seo_url_data = array();
+    public function getHelpArticleSeoUrls($help_article_id) {
+        $help_article_seo_url_data = array();
 
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url WHERE query = 'material_id=" . (int)$material_id . "'");
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "seo_url WHERE query = 'help_article_id=" . (int)$help_article_id . "'");
 
         foreach ($query->rows as $result) {
-            $material_seo_url_data[$result['store_id']][$result['language_id']] = $result['keyword'];
+            $help_article_seo_url_data[$result['store_id']][$result['language_id']] = $result['keyword'];
         }
 
-        return $material_seo_url_data;
+        return $help_article_seo_url_data;
     }
 
-    public function getMaterialLayouts($material_id) {
-        $material_layout_data = array();
+    public function getHelpArticleLayouts($help_article_id) {
+        $help_article_layout_data = array();
 
-        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "materials_to_layout WHERE material_id = '" . (int)$material_id . "'");
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article_to_layout WHERE help_article_id = '" . (int)$help_article_id . "'");
 
         foreach ($query->rows as $result) {
-            $material_layout_data[$result['store_id']] = $result['layout_id'];
+            $help_article_layout_data[$result['store_id']] = $result['layout_id'];
         }
 
-        return $material_layout_data;
+        return $help_article_layout_data;
     }
 
-    public function getTotalMaterials() {
-        $query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "materials");
+    public function getTotalHelpArticles() {
+        $query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "help_article");
 
         return $query->row['total'];
     }
 
-    public function getTotalMaterialsByLayoutId($layout_id) {
-        $query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "materials_to_layout WHERE layout_id = '" . (int)$layout_id . "'");
+    public function getTotalHelpArticlesByLayoutId($layout_id) {
+        $query = $this->db->query("SELECT COUNT(*) AS total FROM " . DB_PREFIX . "help_article_to_layout WHERE layout_id = '" . (int)$layout_id . "'");
 
         return $query->row['total'];
     }

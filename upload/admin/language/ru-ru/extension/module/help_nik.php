@@ -16,9 +16,12 @@ $_['text_edit']        = 'Редактирование';
 $_['text_list']        = 'Список';
 $_['text_table']       = 'Таблица';
 $_['text_help_certificate'] = 'Справка';
-$_['text_help_support'] = 'Поддержка';
+$_['text_help_support']= 'Поддержка';
 $_['text_add_support'] = 'Добавить блок поддержки';
 $_['text_edit_support']= 'Изменить блок поддержки';
+$_['text_help_settings_form'] = 'Изменить настройки справки';
+$_['text_added_help_categories'] = 'Добавленные категории';
+$_['text_not_added_help_categories'] = 'Не добавленные категории';
 
 // Entry
 $_['entry_name']       = 'Название модуля';
@@ -43,7 +46,7 @@ $_['column_title_category']  = 'Название категории';
 $_['column_sort_order']      = 'Порядок сортировки';
 $_['column_material_counts'] = 'Кол-во материалов';
 $_['column_action']          = 'Действие';
-$_['column_title_material']  = 'Название материала';
+$_['column_title_article']   = 'Название статьи';
 $_['column_title_support']   = 'Название блока поддержки';
 
 // Entry
@@ -62,14 +65,20 @@ $_['entry_layout']           = 'Макет';
 $_['entry_link']             = 'Ссылка';
 $_['entry_image']            = 'Изображение';
 $_['entry_title']            = 'Заголовок';
+$_['entry_parent']           = 'Родительская категория';
+$_['entry_categories_under_search'] = 'Категории под поиском';
+$_['entry_categories_display'] = 'Отображаемые в справке категории ';
 
 // Buttons
-$_['add_support_btn']        = 'Добавить блок поддержки';
-$_['add_category_btn']       = 'Добавить категорию';
-$_['add_material_btn']       = 'Добавить материал';
+$_['button_add_support']   = 'Добавить блок поддержки';
+$_['button_add_category']  = 'Добавить категорию';
+$_['button_add_material']  = 'Добавить материал';
+$_['button_help_settings'] = 'Настройки справки';
+$_['button_add_article']   = 'Добавить статью';
 
 // Confirms
 $_['confirm_delete_help_support'] = "Вы действительно хотите удалить блок поддержки?";
+$_['confirm_delete_help_category']= "Вы действительно хотите удалить эту категорию?";
 
 // Help
 $_['help_bottom']            = 'Показывать в нижней части сайта (футер, подвал)';
@@ -88,3 +97,4 @@ $_['error_return']           = 'Страница не может быть уда
 $_['error_store']            = 'Страница не может быть удалена, так как назначена %s магазинам!';
 $_['error_link_support']     = 'Введите ссылку блока поддержки!';
 $_['error_title_support']    = 'Название блока поддержки должно быть от 1 до 64 символов!';
+$_['error_parent']           = 'Родительская категория выбрана неправильно!';

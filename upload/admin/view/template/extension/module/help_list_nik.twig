@@ -35,24 +35,24 @@
         </div>
         <div class="panel-body">
           <div class="add-material-container">
-            <a href="{{ addSupport }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary add-material-btn">{{ add_support_btn }}</a>
+            <a href="{{ addSupport }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary add-material-btn">{{ button_add_support }}</a>
           </div>
           <div class="table-responsive">
             <table class="table table-bordered table-hover">
               <thead>
               <tr>
                 <td class="text-left">
-                  {% if sort == 'id.title' %}
-                    <a href="{{ sort_title }}" class="{{ order|lower }}">{{ column_title_support }}</a>
+                  {% if sort == 'hsd.title' %}
+                    <a href="{{ sort_support_title }}" class="{{ order|lower }}">{{ column_title_support }}</a>
                   {% else %}
-                    <a href="{{ sort_title }}">{{ column_title_support }}</a>
+                    <a href="{{ sort_support_title }}">{{ column_title_support }}</a>
                   {% endif %}
                 </td>
                 <td class="text-right">
-                  {% if sort == 'i.sort_order' %}
-                    <a href="{{ sort_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
+                  {% if sort == 'hs.sort_order' %}
+                    <a href="{{ sort_support_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
                   {% else %}
-                    <a href="{{ sort_sort_order }}">{{ column_sort_order }}</a>
+                    <a href="{{ sort_support_sort_order }}">{{ column_sort_order }}</a>
                   {% endif %}
                 </td>
                 <td class="text-right">{{ column_action }}</td>
@@ -86,7 +86,8 @@
         </div>
         <div class="panel-body">
           <div class="add-material-container">
-            <a href="{{ addCategory }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary add-material-btn">{{ add_category_btn }}</a>
+            <a href="{{ changeSettings }}" data-toggle="tooltip" title="{{ button_help_settings }}" class="btn btn-primary add-material-btn"><i class="fa fa-gear"></i></a>
+            <a href="{{ addCategory }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary add-material-btn">{{ button_add_category }}</a>
           </div>
           <div class="table-responsive">
             <table class="table table-bordered table-hover">
@@ -110,14 +111,14 @@
               </tr>
               </thead>
               <tbody>
-              {% if materials_categories %}
-                {% for materials_category in materials_categories %}
+              {% if help_categories %}
+                {% for help_category in help_categories %}
                   <tr>
-                    <td class="text-left">{{ materials_category.title }}</td>
-                    <td class="text-right">{{ materials_category.sort_order }}</td>
+                    <td class="text-left">{{ help_category.title }}</td>
+                    <td class="text-right">{{ help_category.sort_order }}</td>
                     <td class="text-right">
-                      <a href="{{ materials_category.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
-                      <a href="{{ materials_category.delete }}" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger"><i class="fa fa-trash"></i></a>
+                      <a href="{{ help_category.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+                      <span onclick="confirm('{{ confirm_delete_help_category }}') ? location = '{{ help_category.delete }}' : false;" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger"><i class="fa fa-trash-o"></i></span>
                     </td>
                   </tr>
                 {% endfor %}
@@ -129,54 +130,52 @@
               </tbody>
             </table>
           </div>
-          {% if materials_categories %}
-            {% if addMaterial %}
-              <div class="add-material-container">
-                <a href="{{ addMaterial }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary add-material-btn">{{ add_material_btn }}</a>
-              </div>
-            {% endif %}
-            <div class="table-responsive">
-              <table class="table table-bordered table-hover">
-                <thead>
-                <tr>
-                  <td class="text-left">
-                    {% if sort == 'id.title' %}
-                      <a href="{{ sort_title }}" class="{{ order|lower }}">{{ column_title_category }}</a>
-                    {% else %}
-                      <a href="{{ sort_title }}">{{ column_title_category }}</a>
-                    {% endif %}
-                  </td>
-                  <td class="text-right">
-                    {% if sort == 'i.sort_order' %}
-                      <a href="{{ sort_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
-                    {% else %}
-                      <a href="{{ sort_sort_order }}">{{ column_sort_order }}</a>
-                    {% endif %}
-                  </td>
-                  <td class="text-right">{{ column_action }}</td>
-                </tr>
-                </thead>
-                <tbody>
-                {% if materials %}
-                  {% for material in materials %}
-                    <tr>
-                      <td class="text-left">{{ material.title }}</td>
-                      <td class="text-right">{{ material.sort_order }}</td>
-                      <td class="text-right">
-                        <a href="{{ material.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
-                        <a href="{{ material.delete }}" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger"><i class="fa fa-trash"></i></a>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr>
-                    <td class="text-center" colspan="4">{{ text_no_results }}</td>
-                  </tr>
-                {% endif %}
-                </tbody>
-              </table>
+          {% if addArticle %}
+            <div class="add-material-container">
+              <a href="{{ addArticle }}" data-toggle="tooltip" title="{{ button_add }}" class="btn btn-primary add-material-btn">{{ button_add_article }}</a>
             </div>
           {% endif %}
+          <div class="table-responsive">
+            <table class="table table-bordered table-hover">
+              <thead>
+              <tr>
+                <td class="text-left">
+                  {% if sort == 'id.title' %}
+                    <a href="{{ sort_title }}" class="{{ order|lower }}">{{ column_title_article }}</a>
+                  {% else %}
+                    <a href="{{ sort_title }}">{{ column_title_article }}</a>
+                  {% endif %}
+                </td>
+                <td class="text-right">
+                  {% if sort == 'i.sort_order' %}
+                    <a href="{{ sort_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
+                  {% else %}
+                    <a href="{{ sort_sort_order }}">{{ column_sort_order }}</a>
+                  {% endif %}
+                </td>
+                <td class="text-right">{{ column_action }}</td>
+              </tr>
+              </thead>
+              <tbody>
+              {% if materials %}
+                {% for material in materials %}
+                  <tr>
+                    <td class="text-left">{{ material.title }}</td>
+                    <td class="text-right">{{ material.sort_order }}</td>
+                    <td class="text-right">
+                      <a href="{{ material.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+                      <a href="{{ material.delete }}" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger"><i class="fa fa-trash"></i></a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td class="text-center" colspan="4">{{ text_no_results }}</td>
+                </tr>
+              {% endif %}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </form>
