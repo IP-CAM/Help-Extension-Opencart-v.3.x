@@ -212,7 +212,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $this->load->model('extension/module/help_nik');
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateArticleForm()) {
-            $this->model_extension_module_help_nik->addHelpArticle($this->request->post);
+//            $this->model_extension_module_help_nik->addHelpArticle($this->request->post);
 
             $this->session->data['success'] = $this->language->get('text_success');
 
@@ -275,7 +275,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $this->load->model('extension/module/help_nik');
 
-        if (isset($this->request->get['help_category_id']) && $this->validateDelete()) {
+        if (isset($this->request->get['help_article_id']) && $this->validateDelete()) {
             $this->model_extension_module_help_nik->deleteHelpArticle($this->request->get['help_article_id']);
 
             $this->session->data['success'] = $this->language->get('text_success');
@@ -395,6 +395,12 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $data['sort_support_title'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=hsd.title' . $url, true);
         $data['sort_support_sort_order'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=hs.sort_order' . $url, true);
 
+        $data['sort_category_title'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=hcd.title' . $url, true);
+        $data['sort_category_sort_order'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=hc.sort_order' . $url, true);
+
+        $data['sort_article_title'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=had.title' . $url, true);
+        $data['sort_article_sort_order'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=ha.sort_order' . $url, true);
+
         $filter_data = array(
             'sort'  => $sort,
             'order' => $order,
@@ -421,6 +427,18 @@ class ControllerExtensionModuleHelpNik extends Controller {
                 'sort_order'            => $result['sort_order'],
                 'edit'                  => $this->url->link('extension/module/help_nik/editCategory', 'user_token=' . $this->session->data['user_token'] . '&help_category_id=' . $result['help_category_id'], true),
                 'delete'                => $this->url->link('extension/module/help_nik/deleteCategory', 'user_token=' . $this->session->data['user_token'] . '&help_category_id=' . $result['help_category_id'], true)
+            );
+        }
+
+        $results = $this->model_extension_module_help_nik->getHelpArticles($filter_data);
+
+        foreach ($results as $result) {
+            $data['help_articles'][] = array(
+                'help_article_id'       => $result['help_article_id'],
+                'title'                 => $result['title'],
+                'sort_order'            => $result['sort_order'],
+                'edit'                  => $this->url->link('extension/module/help_nik/editArticle', 'user_token=' . $this->session->data['user_token'] . '&help_article_id=' . $result['help_article_id'], true),
+                'delete'                => $this->url->link('extension/module/help_nik/deleteArticle', 'user_token=' . $this->session->data['user_token'] . '&help_article_id=' . $result['help_article_id'], true)
             );
         }
 
@@ -657,8 +675,8 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         if (isset($this->request->post['path'])) {
             $data['path'] = $this->request->post['path'];
-        } elseif (isset($this->request->get['help_category_id'])) {
-            $data['path'] = $this->model_extension_module_help_nik->getHelpCategoryParent($this->request->get['help_category_id']);
+        } elseif (!empty($help_category_info)) {
+            $data['path'] = $this->model_extension_module_help_nik->getHelpCategoryParent($help_category_info['parent_id']);
         } else {
             $data['path'] = '';
         }
@@ -753,6 +771,12 @@ class ControllerExtensionModuleHelpNik extends Controller {
             $data['error_keyword'] = '';
         }
 
+        if (isset($this->error['parent'])) {
+            $data['error_parent'] = $this->error['parent'];
+        } else {
+            $data['error_parent'] = array();
+        }
+
         $url = '';
 
         if (isset($this->request->get['sort'])) {
@@ -775,7 +799,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
             'href' => $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . $url, true)
         );
 
-        if (!isset($this->request->get['help_category_id'])) {
+        if (!isset($this->request->get['help_article_id'])) {
             $data['action'] = $this->url->link('extension/module/help_nik/addArticle', 'user_token=' . $this->session->data['user_token'] . $url, true);
         } else {
             $data['action'] = $this->url->link('extension/module/help_nik/editArticle', 'user_token=' . $this->session->data['user_token'] . '&help_article_id=' . $this->request->get['help_article_id'] . $url, true);
@@ -822,7 +846,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         if (isset($this->request->post['help_article_store'])) {
             $data['help_article_store'] = $this->request->post['help_article_store'];
         } elseif (isset($this->request->get['help_article_id'])) {
-            $data['help_article_store'] = $this->model_extension_module_help_nik->getHelpCategoryStores($this->request->get['help_article_id']);
+            $data['help_article_store'] = $this->model_extension_module_help_nik->getHelpArticleStores($this->request->get['help_article_id']);
         } else {
             $data['help_article_store'] = array(0);
         }
@@ -840,7 +864,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         } elseif (!empty($help_article_info)) {
             $data['help_category_id'] = $help_article_info['help_category_id'];
         } else {
-            $data['help_category_id'] = 0;
+            $data['help_category_id'] = '';
         }
 
         if (isset($this->request->post['sort_order'])) {
@@ -859,20 +883,20 @@ class ControllerExtensionModuleHelpNik extends Controller {
             $data['status'] = true;
         }
 
-        if (isset($this->request->post['help_category_seo_url'])) {
-            $data['help_category_seo_url'] = $this->request->post['help_category_seo_url'];
-        } elseif (isset($this->request->get['help_category_id'])) {
-            $data['help_category_seo_url'] = $this->model_extension_module_help_nik->getHelpCategorySeoUrls($this->request->get['help_category_id']);
+        if (isset($this->request->post['help_article_seo_url'])) {
+            $data['help_article_seo_url'] = $this->request->post['help_article_seo_url'];
+        } elseif (isset($this->request->get['help_article_id'])) {
+            $data['help_article_seo_url'] = $this->model_extension_module_help_nik->getHelpArticleSeoUrls($this->request->get['help_article_id']);
         } else {
-            $data['help_category_seo_url'] = array();
+            $data['help_article_seo_url'] = array();
         }
 
-        if (isset($this->request->post['help_category_layout'])) {
-            $data['help_category_layout'] = $this->request->post['help_category_layout'];
-        } elseif (isset($this->request->get['help_category_id'])) {
-            $data['help_category_layout'] = $this->model_extension_module_help_nik->getHelpCategoryLayouts($this->request->get['help_category_id']);
+        if (isset($this->request->post['help_article_layout'])) {
+            $data['help_article_layout'] = $this->request->post['help_article_layout'];
+        } elseif (isset($this->request->get['help_article_id'])) {
+            $data['help_article_layout'] = $this->model_extension_module_help_nik->getHelpArticleLayouts($this->request->get['help_article_id']);
         } else {
-            $data['help_category_layout'] = array();
+            $data['help_article_layout'] = array();
         }
 
         $this->load->model('design/layout');
@@ -883,7 +907,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['footer'] = $this->load->controller('common/footer');
 
-        $this->response->setOutput($this->load->view('extension/module/help_category_form_nik', $data));
+        $this->response->setOutput($this->load->view('extension/module/help_article_form_nik', $data));
     }
 
     protected function getFormHelpSetting() {
@@ -895,8 +919,8 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $help_settings = $this->model_extension_module_help_nik->getHelpSettings();
 
-        $help_settings['search_help_categories'] = json_decode($help_settings['search_help_categories']);
-        $help_settings['display_help_categories'] = json_decode($help_settings['display_help_categories']);
+        $help_settings['search_help_categories'] = isset($help_settings['search_help_categories']) ? json_decode($help_settings['search_help_categories']) : array();
+        $help_settings['display_help_categories'] = isset($help_settings['display_help_categories']) ? json_decode($help_settings['display_help_categories']) : array();
 
         $data['for_search_help_categories'] = array();
         $data['for_display_help_categories'] = array();
@@ -1074,6 +1098,60 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
                         foreach ($seo_urls as $seo_url) {
                             if (($seo_url['store_id'] == $store_id) && (!isset($this->request->get['help_category_id']) || ($seo_url['query'] != 'help_category_id=' . $this->request->get['help_category_id']))) {
+                                $this->error['keyword'][$store_id][$language_id] = $this->language->get('error_keyword');
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if ($this->error && !isset($this->error['warning'])) {
+            $this->error['warning'] = $this->language->get('error_warning');
+        }
+
+        return !$this->error;
+    }
+
+    protected function validateArticleForm() {
+        if (!$this->user->hasPermission('modify', 'extension/module/help_nik')) {
+            $this->error['warning'] = $this->language->get('error_permission');
+        }
+
+        foreach ($this->request->post['help_article_description'] as $language_id => $value) {
+            if ((utf8_strlen($value['title']) < 1) || (utf8_strlen($value['title']) > 64)) {
+                $this->error['title'][$language_id] = $this->language->get('error_title_support');
+            }
+
+            if ((utf8_strlen($value['description']) < 1) || (utf8_strlen($value['description']) > 255)) {
+                $this->error['description'][$language_id] = $this->language->get('error_description');
+            }
+
+            if ((utf8_strlen($value['meta_title']) < 1) || (utf8_strlen($value['meta_title']) > 255)) {
+                $this->error['meta_title'][$language_id] = $this->language->get('error_meta_title');
+            }
+        }
+
+        if (isset($this->request->post['help_category_id']) && strlen($this->request->post['help_category_id']) < 1) {
+            $this->error['parent'] = $this->language->get('error_article_parent');
+        }
+
+        if ($this->request->post['help_article_seo_url']) {
+            $this->load->model('design/seo_url');
+
+            foreach ($this->request->post['help_article_seo_url'] as $store_id => $language) {
+                foreach ($language as $language_id => $keyword) {
+                    if (!empty($keyword)) {
+                        if (count(array_keys($language, $keyword)) > 1) {
+                            $this->error['keyword'][$store_id][$language_id] = $this->language->get('error_unique');
+                        }
+
+                        $seo_urls = $this->model_design_seo_url->getSeoUrlsByKeyword($keyword);
+
+                        foreach ($seo_urls as $seo_url) {
+                            if (($seo_url['store_id'] == $store_id) && (!isset($this->request->get['help_article_id']) || ($seo_url['query'] != 'help_article_id=' . $this->request->get['help_article_id']))) {
                                 $this->error['keyword'][$store_id][$language_id] = $this->language->get('error_keyword');
 
                                 break;

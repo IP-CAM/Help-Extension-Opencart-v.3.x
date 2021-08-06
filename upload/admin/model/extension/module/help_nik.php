@@ -534,7 +534,7 @@ class ModelExtensionModuleHelpNik extends Model {
     }
 
     public function editHelpArticle($help_article_id, $data) {
-        $this->db->query("UPDATE " . DB_PREFIX . "materials SET help_category_id = '" . (int)$data['help_category_id'] . "', sort_order = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "' WHERE help_article_id = '" . (int)$help_article_id . "'");
+        $this->db->query("UPDATE " . DB_PREFIX . "help_article SET help_category_id = '" . (int)$data['help_category_id'] . "', sort_order = '" . (int)$data['sort_order'] . "', status = '" . (int)$data['status'] . "' WHERE help_article_id = '" . (int)$help_article_id . "'");
 
         $this->db->query("DELETE FROM " . DB_PREFIX . "help_article_description WHERE help_article_id = '" . (int)$help_article_id . "'");
 
@@ -545,7 +545,7 @@ class ModelExtensionModuleHelpNik extends Model {
         $this->db->query("DELETE FROM " . DB_PREFIX . "help_article_to_store WHERE help_article_id = '" . (int)$help_article_id . "'");
 
         if (isset($data['help_article_store'])) {
-            foreach ($data['materials_store'] as $store_id) {
+            foreach ($data['help_article_store'] as $store_id) {
                 $this->db->query("INSERT INTO " . DB_PREFIX . "help_article_to_store SET help_article_id = '" . (int)$help_article_id . "', store_id = '" . (int)$store_id . "'");
             }
         }
@@ -645,7 +645,7 @@ class ModelExtensionModuleHelpNik extends Model {
         }
     }
 
-    public function getHelpArticleDescriptions($help_article_id) {
+    public function getHelpArticleDescription($help_article_id) {
         $help_article_description_data = array();
 
         $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article_description WHERE help_article_id = '" . (int)$help_article_id . "'");

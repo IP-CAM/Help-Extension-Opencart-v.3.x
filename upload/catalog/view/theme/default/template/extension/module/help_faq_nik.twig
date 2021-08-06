@@ -12,6 +12,17 @@
     margin: 10px;
     color: white;
   }
+  .help-content {
+    padding: 20px 0;
+  }
+  .help-content a {
+    color: #000;
+    text-underline: none;
+    text-decoration: none;
+  }
+  .help-category-parent {
+    font-size: 18px;
+  }
 </style>
 <div id="help-nik" class="container">
   <ul class="breadcrumb">
@@ -30,23 +41,7 @@
     <div id="content" class="{{ class }}">
       {{ content_top }}
 
-      <h2>{{ text_support }}</h2>
-      <div class="row">
-        {% for support in supports %}
-          <div class="col-sm-3">
-            <a href="{{ support.link }}" style="height: 200px; background-color: #d1f2ff; padding: 10px; display: block;">
-              {% if support.thumb %}
-                <div><img src="{{ support.thumb }}" alt="{{ support.title }}"></div>
-              {% endif %}
-              <h4>{{ support.title }}</h4>
-              <p>{{ support.description }}</p>
-            </a>
-          </div>
-        {% endfor %}
-      </div>
-
-      <h2>{{ text_certificate }}</h2>
-      <a href="{{ faq }}">{{ text_all_questions }}</a>
+      <h2>{{ text_faq }}</h2>
       <div id="help_search" class="input-group">
         <input type="text" name="help_search" value="{{ help_search }}" placeholder="{{ text_help_search }}" class="form-control input-lg" />
         <span class="input-group-btn">
@@ -57,6 +52,16 @@
         {% for search_help_category in search_help_categories %}
           <a href="{{ search_help_category.link }}"><span>{{ search_help_category.title }}</span></a>
         {% endfor %}
+      </div>
+
+      <div class="help-content">
+        <a class="help-category-parent" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
+          Link with href
+          <i class="fa fa-arrow-right"></i>
+        </a>
+        <div class="collapse" id="collapseExample">
+          Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
+        </div>
       </div>
 
       {{ content_bottom }}

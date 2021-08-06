@@ -94,17 +94,17 @@
               <thead>
               <tr>
                 <td class="text-left">
-                  {% if sort == 'id.title' %}
-                    <a href="{{ sort_title }}" class="{{ order|lower }}">{{ column_title_category }}</a>
+                  {% if sort == 'hcd.title' %}
+                    <a href="{{ sort_category_title }}" class="{{ order|lower }}">{{ column_title_category }}</a>
                   {% else %}
-                    <a href="{{ sort_title }}">{{ column_title_category }}</a>
+                    <a href="{{ sort_category_title }}">{{ column_title_category }}</a>
                   {% endif %}
                 </td>
                 <td class="text-right">
-                  {% if sort == 'i.sort_order' %}
-                    <a href="{{ sort_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
+                  {% if sort == 'hc.sort_order' %}
+                    <a href="{{ sort_category_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
                   {% else %}
-                    <a href="{{ sort_sort_order }}">{{ column_sort_order }}</a>
+                    <a href="{{ sort_category_sort_order }}">{{ column_sort_order }}</a>
                   {% endif %}
                 </td>
                 <td class="text-right">{{ column_action }}</td>
@@ -140,31 +140,31 @@
               <thead>
               <tr>
                 <td class="text-left">
-                  {% if sort == 'id.title' %}
-                    <a href="{{ sort_title }}" class="{{ order|lower }}">{{ column_title_article }}</a>
+                  {% if sort == 'had.title' %}
+                    <a href="{{ sort_article_title }}" class="{{ order|lower }}">{{ column_title_article }}</a>
                   {% else %}
-                    <a href="{{ sort_title }}">{{ column_title_article }}</a>
+                    <a href="{{ sort_article_title }}">{{ column_title_article }}</a>
                   {% endif %}
                 </td>
                 <td class="text-right">
-                  {% if sort == 'i.sort_order' %}
-                    <a href="{{ sort_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
+                  {% if sort == 'ha.sort_order' %}
+                    <a href="{{ sort_article_sort_order }}" class="{{ order|lower }}">{{ column_sort_order }}</a>
                   {% else %}
-                    <a href="{{ sort_sort_order }}">{{ column_sort_order }}</a>
+                    <a href="{{ sort_article_sort_order }}">{{ column_sort_order }}</a>
                   {% endif %}
                 </td>
                 <td class="text-right">{{ column_action }}</td>
               </tr>
               </thead>
               <tbody>
-              {% if materials %}
-                {% for material in materials %}
+              {% if help_articles %}
+                {% for help_article in help_articles %}
                   <tr>
-                    <td class="text-left">{{ material.title }}</td>
-                    <td class="text-right">{{ material.sort_order }}</td>
+                    <td class="text-left">{{ help_article.title }}</td>
+                    <td class="text-right">{{ help_article.sort_order }}</td>
                     <td class="text-right">
-                      <a href="{{ material.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
-                      <a href="{{ material.delete }}" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger"><i class="fa fa-trash"></i></a>
+                      <a href="{{ help_article.edit }}" data-toggle="tooltip" title="{{ button_edit }}" class="btn btn-primary"><i class="fa fa-pencil"></i></a>
+                      <span onclick="confirm('{{ confirm_delete_help_article }}') ? location = '{{ help_article.delete }}' : false;" data-toggle="tooltip" title="{{ button_delete }}" class="btn btn-danger"><i class="fa fa-trash-o"></i></span>
                     </td>
                   </tr>
                 {% endfor %}
