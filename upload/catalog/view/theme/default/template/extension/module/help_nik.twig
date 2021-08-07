@@ -64,4 +64,17 @@
     {{ column_right }}
   </div>
 </div>
+<script>
+  $('#help_search input[name=\'help_search\']').parent().find('button').on('click', function() {
+    var url = $('base').attr('href') + 'index.php?route=extension/module/help_nik/faq';
+
+    var value = $('#help_search input[name=\'help_search\']').val();
+
+    if (value) {
+      url += '&help_search=' + encodeURIComponent(value);
+    }
+
+    location = url;
+  });
+</script>
 {{ footer }}

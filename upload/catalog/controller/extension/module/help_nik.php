@@ -44,6 +44,12 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $this->load->language('extension/module/help_nik');
         $this->load->model('extension/module/help_nik');
 
+        if (isset($this->request->get['help_search'])) {
+            $search = $this->request->get['help_search'];
+        } else {
+            $search = '';
+        }
+
         $data['breadcrumbs'] = array();
 
         $data['breadcrumbs'][] = array(
@@ -51,19 +57,38 @@ class ControllerExtensionModuleHelpNik extends Controller {
             'href' => $this->url->link('common/home')
         );
 
+        $url = '';
+
+        if (isset($this->request->get['search'])) {
+            $url .= '&search=' . urlencode(html_entity_decode($this->request->get['search'], ENT_QUOTES, 'UTF-8'));
+        }
+
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_certificate'),
-            'href' => $this->url->link('extension/module/help_nik')
+            'href' => $this->url->link('extension/module/help_nik', $url)
         );
 
         $data['search_help_categories'] = $this->getUnderSearchCategories();
 
-        $help_categories = $this->model_extension_module_help_nik->getHelpCategories();
-        $data['help_categories'] = $this->buildTree($help_categories);
 
-        echo "<pre>";
-        print_r($data['help_categories']);
-        echo "</pre>";
+        if (isset($this->request->get['help_search'])) {
+            $filter_data = array(
+                'filter_title' => $search
+            );
+
+            $help_categories = $this->model_extension_module_help_nik->getHelpCategories($filter_data);
+
+            $data['help_categories'] = $this->buildTree($help_categories);
+            $data['help_search'] = $search;
+        } else if (isset($this->request->get['help_category_id'])) {
+            $help_categories[] = $this->model_extension_module_help_nik->getHelpCategory($this->request->get['help_category_id']);
+            $data['help_categories'] = $this->buildTree($help_categories);
+        } else {
+            $help_categories = $this->model_extension_module_help_nik->getHelpCategories();
+            $data['help_categories'] = $this->buildTree($help_categories);
+        }
+
+
 
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['column_right'] = $this->load->controller('common/column_right');

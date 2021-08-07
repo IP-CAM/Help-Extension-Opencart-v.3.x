@@ -22,6 +22,7 @@
   }
   .help-category-parent {
     font-size: 18px;
+    margin-bottom: 20px;
   }
 </style>
 <div id="help-nik" class="container">
@@ -55,13 +56,29 @@
       </div>
 
       <div class="help-content">
-        <a class="help-category-parent" data-toggle="collapse" href="#collapseExample" role="button" aria-expanded="false" aria-controls="collapseExample">
-          Link with href
-          <i class="fa fa-arrow-right"></i>
-        </a>
-        <div class="collapse" id="collapseExample">
-          Anim pariatur cliche reprehenderit, enim eiusmod high life accusamus terry richardson ad squid. Nihil anim keffiyeh helvetica, craft beer labore wes anderson cred nesciunt sapiente ea proident.
-        </div>
+
+
+        {# TODO: RECURSION #}
+        {% for help_category in help_categories %}
+          <a {% if help_category.parent_id == '0' %}class="help-category-parent" {% endif %} data-toggle="collapse" href="#collapseExample{{ help_category.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ help_category.help_category_id }}">
+            {{ help_category.title }}
+            <i class="fa fa-arrow-right"></i>
+          </a>
+          <div class="collapse" id="collapseExample{{ help_category.help_category_id }}">
+            {% for article in help_category.articles %}
+              <a data-toggle="collapse" href="#collapseExample{{ article.help_article_id }}{{ article.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ article.help_article_id }}{{ article.help_category_id }}">
+                {{ article.title }}
+                <i class="fa fa-arrow-right"></i>
+              </a>
+              <div class="collapse" id="collapseExample{{ article.help_article_id }}{{ article.help_category_id }}">
+                {{ article.description }}
+              </div>
+            {% endfor %}
+          </div>
+          <br>
+        {% endfor %}
+
+
       </div>
 
       {{ content_bottom }}
@@ -69,4 +86,17 @@
     {{ column_right }}
   </div>
 </div>
+<script>
+  $('#help_search input[name=\'help_search\']').parent().find('button').on('click', function() {
+    var url = $('base').attr('href') + 'index.php?route=extension/module/help_nik/faq';
+
+    var value = $('#help_search input[name=\'help_search\']').val();
+
+    if (value) {
+      url += '&help_search=' + encodeURIComponent(value);
+    }
+
+    location = url;
+  });
+</script>
 {{ footer }}

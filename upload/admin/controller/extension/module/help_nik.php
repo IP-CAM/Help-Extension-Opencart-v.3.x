@@ -212,7 +212,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $this->load->model('extension/module/help_nik');
 
         if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validateArticleForm()) {
-//            $this->model_extension_module_help_nik->addHelpArticle($this->request->post);
+            $this->model_extension_module_help_nik->addHelpArticle($this->request->post);
 
             $this->session->data['success'] = $this->language->get('text_success');
 
