@@ -85,9 +85,12 @@ class ModelExtensionModuleHelpNik extends Model {
         $this->db->query("CREATE TABLE IF NOT EXISTS `" . DB_PREFIX . "help_settings` (
             `id` INT(11) NOT NULL AUTO_INCREMENT,
             `search_help_categories` TEXT NOT NULL,
-            `display_help_categories` TEXT NOT NULL,
+            `display_help_articles` TEXT NOT NULL,
             PRIMARY KEY (`id`)
 		) ENGINE=MyISAM DEFAULT COLLATE=utf8_general_ci;");
+
+        $this->db->query("INSERT INTO " . DB_PREFIX . "seo_url SET `store_id` = '" . (int)0 . "', `language_id` = '" . (int)1 . "', `query` = '" . $this->db->escape('extension/module/help_nik') . "', `keyword` = '" . $this->db->escape('help') . "'");
+        $this->db->query("INSERT INTO " . DB_PREFIX . "seo_url SET `store_id` = '" . (int)0 . "', `language_id` = '" . (int)1 . "', `query` = '" . $this->db->escape('extension/module/help_nik/faq') . "', `keyword` = '" . $this->db->escape('faq') . "'");
     }
 
     public function uninstall() {
@@ -485,7 +488,7 @@ class ModelExtensionModuleHelpNik extends Model {
     public function saveHelpSettings($data) {
         $this->db->query("DELETE FROM `" . DB_PREFIX . "help_settings`");
 
-        $this->db->query("INSERT INTO " . DB_PREFIX . "help_settings SET `search_help_categories` = '" . $this->db->escape(json_encode($data['search_help_categories'])). "', `display_help_categories` = '" . $this->db->escape(json_encode($data['display_help_categories'])) . "'");
+        $this->db->query("INSERT INTO " . DB_PREFIX . "help_settings SET `search_help_categories` = '" . $this->db->escape(json_encode($data['search_help_categories'])). "', `display_help_articles` = '" . $this->db->escape(json_encode($data['display_help_articles'])) . "'");
     }
 
     public function getHelpSettings() {
@@ -581,6 +584,18 @@ class ModelExtensionModuleHelpNik extends Model {
         $this->db->query("DELETE FROM `" . DB_PREFIX . "seo_url` WHERE query = 'help_article_id=" . (int)$help_article_id . "'");
 
         $this->cache->delete('help_article');
+    }
+
+    public function getHelpArticlesByParent($parent_id = 0) {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article ha LEFT JOIN " . DB_PREFIX . "help_article_description had ON (ha.help_article_id = had.help_article_id) LEFT JOIN " . DB_PREFIX . "help_article_to_store ha2s ON (ha.help_article_id = ha2s.help_article_id) WHERE ha.help_category_id = '" . (int)$parent_id . "' AND had.language_id = '" . (int)$this->config->get('config_language_id') . "' AND ha2s.store_id = '" . (int)$this->config->get('config_store_id') . "'  AND ha.status = '1' ORDER BY ha.sort_order, LCASE(had.title)");
+
+        return $query->rows;
+    }
+
+    public function getHelpArticleInfo($help_article_id) {
+        $query = $this->db->query("SELECT * FROM " . DB_PREFIX . "help_article ha LEFT JOIN " . DB_PREFIX . "help_article_description had ON (ha.help_article_id = had.help_article_id) LEFT JOIN " . DB_PREFIX . "help_article_to_store ha2s ON (ha.help_article_id = ha2s.help_article_id) WHERE ha.help_article_id = '" . (int)$help_article_id . "' AND had.language_id = '" . (int)$this->config->get('config_language_id') . "'");
+
+        return $query->row;
     }
 
     public function getHelpArticle($help_article_id) {

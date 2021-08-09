@@ -12,6 +12,19 @@
     margin: 10px;
     color: white;
   }
+  .display-help-articles {
+    margin-top: 30px;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    height: 400px;
+  }
+  .display-help-articles a {
+    color: #000;
+    text-underline: none;
+    text-decoration: none;
+    font-size: 16px;
+  }
 </style>
 <div id="help-nik" class="container">
   <ul class="breadcrumb">
@@ -30,20 +43,22 @@
     <div id="content" class="{{ class }}">
       {{ content_top }}
 
-      <h2>{{ text_support }}</h2>
-      <div class="row">
-        {% for support in supports %}
-          <div class="col-sm-3">
-            <a href="{{ support.link }}" style="height: 200px; background-color: #d1f2ff; padding: 10px; display: block;">
-              {% if support.thumb %}
-                <div><img src="{{ support.thumb }}" alt="{{ support.title }}"></div>
-              {% endif %}
-              <h4>{{ support.title }}</h4>
-              <p>{{ support.description }}</p>
-            </a>
-          </div>
-        {% endfor %}
-      </div>
+      {% if supports %}
+        <h2>{{ text_support }}</h2>
+        <div class="row">
+          {% for support in supports %}
+            <div class="col-sm-3">
+              <a href="{{ support.link }}" style="height: 200px; background-color: #d1f2ff; padding: 10px; display: block; margin-bottom: 30px; text-decoration: none;">
+                {% if support.thumb %}
+                  <div><img src="{{ support.thumb }}" alt="{{ support.title }}"></div>
+                {% endif %}
+                <h4>{{ support.title }}</h4>
+                {{ support.description }}
+              </a>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
 
       <h2>{{ text_certificate }}</h2>
       <a href="{{ faq }}">{{ text_all_questions }}</a>
@@ -56,6 +71,19 @@
       <div class="help-categories-under-search">
         {% for search_help_category in search_help_categories %}
           <a href="{{ search_help_category.link }}"><span>{{ search_help_category.title }}</span></a>
+        {% endfor %}
+      </div>
+
+      <div class="display-help-articles">
+        {% for help_article in display_help_articles %}
+          <a data-toggle="collapse" href="#collapseExample{{ help_article.help_article_id }}{{ help_article.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ help_article.help_article_id }}{{ help_article.help_category_id }}">
+            {{ help_article.title }}
+            <i class="fa fa-arrow-right"></i>
+          </a>
+          <div class="collapse" id="collapseExample{{ help_article.help_article_id }}{{ help_article.help_category_id }}">
+            {{ help_article.description }}
+          </div>
+          <br>
         {% endfor %}
       </div>
 

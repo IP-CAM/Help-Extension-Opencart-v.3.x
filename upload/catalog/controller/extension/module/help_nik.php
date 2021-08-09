@@ -16,6 +16,27 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $data['search_help_categories'] = $this->getUnderSearchCategories();
 
+        $help_settings = $this->model_extension_module_help_nik->getHelpSettings();
+
+        $data['display_help_articles'] = array();
+
+        if (isset($help_settings['display_help_articles'])) {
+            $help_settings['display_help_articles'] = json_decode($help_settings['display_help_articles']);
+            $display_help_articles = array();
+
+            foreach ($help_settings['display_help_articles'] as $display_help_article) {
+                $display_help_articles[] = $this->model_extension_module_help_nik->getHelpArticle($display_help_article);
+            }
+
+            foreach ($display_help_articles as $display_help_article) {
+                $data['display_help_articles'][] = array(
+                    'help_article_id' => $display_help_article['help_article_id'],
+                    'title'           => $display_help_article['title'],
+                    'description'     => html_entity_decode($display_help_article['description']),
+                );
+            }
+        }
+
         $data['supports'] = $this->model_extension_module_help_nik->getHelpSupports();
 
         foreach ($data['supports'] as $key => $support) {
@@ -78,17 +99,53 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
             $help_categories = $this->model_extension_module_help_nik->getHelpCategories($filter_data);
 
-            $data['help_categories'] = $this->buildTree($help_categories);
+            $root_categories_ids = array();
+            $data['parents_help_categories_ids'] = array();
+
+            foreach ($help_categories as $help_category) {
+                $root_categories_ids[] = $this->getRootCategoryId($help_category);
+                $parents_categories_id = $this->getParentsCategoryId($help_category);
+                $data['parents_help_categories_ids'] = array_merge($data['parents_help_categories_ids'], $parents_categories_id);
+                $data['parents_help_categories_ids'][] = $help_category['help_category_id'];
+            }
+
+            $data['parents_help_categories_ids'] = array_unique($data['parents_help_categories_ids']);
+
+            $help_categories = $this->model_extension_module_help_nik->getHelpCategories();
+
+            $all_categories = $this->buildTree($help_categories);
+
+            $data['help_categories'] = array();
+
+            foreach ($all_categories as $root_category) {
+                if (in_array($root_category['help_category_id'], $root_categories_ids)) {
+                    $data['help_categories'][] = $root_category;
+                }
+            }
             $data['help_search'] = $search;
         } else if (isset($this->request->get['help_category_id'])) {
-            $help_categories[] = $this->model_extension_module_help_nik->getHelpCategory($this->request->get['help_category_id']);
-            $data['help_categories'] = $this->buildTree($help_categories);
+            $selected_category = $this->model_extension_module_help_nik->getHelpCategory($this->request->get['help_category_id']);
+            $root_category_id = $this->getRootCategoryId($selected_category);
+
+            $data['parents_help_categories_ids'] = $this->getParentsCategoryId($selected_category);
+
+            $data['parents_help_categories_ids'][] = $this->request->get['help_category_id'];
+
+            $help_categories = $this->model_extension_module_help_nik->getHelpCategories();
+
+            $all_categories = $this->buildTree($help_categories);
+
+            $data['help_categories'] = array();
+
+            foreach ($all_categories as $root_category) {
+                if ((int)$root_category['help_category_id'] == (int)$root_category_id) {
+                    $data['help_categories'][] = $root_category;
+                }
+            }
         } else {
             $help_categories = $this->model_extension_module_help_nik->getHelpCategories();
             $data['help_categories'] = $this->buildTree($help_categories);
         }
-
-
 
         $data['column_left'] = $this->load->controller('common/column_left');
         $data['column_right'] = $this->load->controller('common/column_right');
@@ -105,6 +162,11 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         foreach ($elements as $element) {
             $element['articles'] = $this->model_extension_module_help_nik->getHelpArticles($element['help_category_id']);
+            $element['description'] = html_entity_decode($element['description']);
+
+            foreach ($element['articles'] as $key => $article) {
+                $element['articles'][$key]['description'] = html_entity_decode($article['description']);
+            }
 
             if ($element['parent_id'] == $parentId) {
 
@@ -117,6 +179,29 @@ class ControllerExtensionModuleHelpNik extends Controller {
         }
 
         return $branch;
+    }
+
+    private function getParentsCategoryId($category) {
+        $parents_categories_ids = array();
+
+        if ($category['parent_id'] != '0') {
+            $parents_categories_ids[] = $category['parent_id'];
+            $parent_category = $this->model_extension_module_help_nik->getHelpCategory($category['parent_id']);
+            $parents_categories_ids = array_merge($parents_categories_ids, $this->getParentsCategoryId($parent_category));
+        }
+
+        return $parents_categories_ids;
+    }
+
+    private function getRootCategoryId($category) {
+        if ($category['parent_id'] == '0') {
+            return $category['help_category_id'];
+        }
+
+        if ($category['parent_id'] != '0') {
+            $parent_category = $this->model_extension_module_help_nik->getHelpCategory($category['parent_id']);
+            return $this->getRootCategoryId($parent_category);
+        }
     }
 
     protected function getUnderSearchCategories() {
@@ -138,17 +223,17 @@ class ControllerExtensionModuleHelpNik extends Controller {
                     'help_category_id' => $search_help_category['help_category_id'],
                     'title'            => $search_help_category['title'],
                     'sort_order'       => $search_help_category['sort_order'],
-                    'link'             => $this->url->link('extension/module/help_nik/faq', 'help_category_id=' . $search_help_category['help_category_id'], true),
+                    'link'             => $this->url->link('extension/module/help_nik/faq', 'help_category_id=' . $search_help_category['help_category_id']),
                 );
             }
 
-            $sort_order = array();
-
-            foreach ($data['search_help_categories'] as $key => $value) {
-                $sort_order[$key] = $value['sort_order'];
-            }
-
-            array_multisort($sort_order, SORT_ASC, $data['search_help_categories']);
+//            $sort_order = array();
+//
+//            foreach ($data['search_help_categories'] as $key => $value) {
+//                $sort_order[$key] = $value['sort_order'];
+//            }
+//
+//            array_multisort($sort_order, SORT_ASC, $data['search_help_categories']);
         }
 
         return $data['search_help_categories'];

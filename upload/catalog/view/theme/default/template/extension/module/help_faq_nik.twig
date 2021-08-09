@@ -14,6 +14,8 @@
   }
   .help-content {
     padding: 20px 0;
+    display: flex;
+    flex-direction: column;
   }
   .help-content a {
     color: #000;
@@ -25,6 +27,38 @@
     margin-bottom: 20px;
   }
 </style>
+
+{% macro help_list(items, step = 0) %}
+  {% import _self as tree %}
+
+  {% for item in items %}
+    <a {% if item.parent_id == '0' %}class="help-category-parent" {% endif %} style="margin-left: {{ step * 30 }}px;" data-toggle="collapse" href="#collapseExample{{ item.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ item.help_category_id }}">
+      {{ item.title }}
+      <i class="fa fa-arrow-right"></i>
+    </a>
+    <div class="collapse" style="margin-left: {{ step * 30 }}px;" id="collapseExample{{ item.help_category_id }}">
+      {% if item.children %}
+        {{ tree.help_list(item.children, step + 1) }}
+      {% endif %}
+      {% set step = step + 1 %}
+      {% for article in item.articles %}
+        <div style="margin-left: {{ step * 30 }}px;">
+          <a data-toggle="collapse" href="#collapseExample{{ article.help_article_id }}{{ article.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ article.help_article_id }}{{ article.help_category_id }}">
+            {{ article.title }}
+            <i class="fa fa-arrow-right"></i>
+          </a>
+          <div class="collapse" id="collapseExample{{ article.help_article_id }}{{ article.help_category_id }}">
+            {{ article.description }}
+          </div>
+        </div>
+      {% endfor %}
+      {% set step = step - 1 %}
+    </div>
+    <br>
+
+  {% endfor %}
+{% endmacro %}
+
 <div id="help-nik" class="container">
   <ul class="breadcrumb">
     {% for breadcrumb in breadcrumbs %}
@@ -57,27 +91,7 @@
 
       <div class="help-content">
 
-
-        {# TODO: RECURSION #}
-        {% for help_category in help_categories %}
-          <a {% if help_category.parent_id == '0' %}class="help-category-parent" {% endif %} data-toggle="collapse" href="#collapseExample{{ help_category.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ help_category.help_category_id }}">
-            {{ help_category.title }}
-            <i class="fa fa-arrow-right"></i>
-          </a>
-          <div class="collapse" id="collapseExample{{ help_category.help_category_id }}">
-            {% for article in help_category.articles %}
-              <a data-toggle="collapse" href="#collapseExample{{ article.help_article_id }}{{ article.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ article.help_article_id }}{{ article.help_category_id }}">
-                {{ article.title }}
-                <i class="fa fa-arrow-right"></i>
-              </a>
-              <div class="collapse" id="collapseExample{{ article.help_article_id }}{{ article.help_category_id }}">
-                {{ article.description }}
-              </div>
-            {% endfor %}
-          </div>
-          <br>
-        {% endfor %}
-
+        {{ _self.help_list(help_categories, 0) }}
 
       </div>
 
@@ -86,6 +100,11 @@
     {{ column_right }}
   </div>
 </div>
+<script>
+    {% for help_category_id in parents_help_categories_ids %}
+      $('a[href="#collapseExample{{ help_category_id }}"]').click()
+    {% endfor %}
+</script>
 <script>
   $('#help_search input[name=\'help_search\']').parent().find('button').on('click', function() {
     var url = $('base').attr('href') + 'index.php?route=extension/module/help_nik/faq';

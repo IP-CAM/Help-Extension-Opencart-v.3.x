@@ -312,10 +312,9 @@ class ControllerExtensionModuleHelpNik extends Controller {
             if (!isset($post['search_help_categories'])) {
                 $post['search_help_categories'] = array();
             }
-            if (!isset($post['display_help_categories'])) {
-                $post['display_help_categories'] = array();
+            if (!isset($post['display_help_articles'])) {
+                $post['display_help_articles'] = array();
             }
-
 
             $this->model_extension_module_help_nik->saveHelpSettings($post);
 
@@ -540,7 +539,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         } elseif (!empty($help_support_info)) {
             $data['sort_order'] = $help_support_info['sort_order'];
         } else {
-            $data['sort_order'] = '';
+            $data['sort_order'] = 0;
         }
 
         if (isset($this->request->post['status'])) {
@@ -920,28 +919,36 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $help_settings = $this->model_extension_module_help_nik->getHelpSettings();
 
         $help_settings['search_help_categories'] = isset($help_settings['search_help_categories']) ? json_decode($help_settings['search_help_categories']) : array();
-        $help_settings['display_help_categories'] = isset($help_settings['display_help_categories']) ? json_decode($help_settings['display_help_categories']) : array();
+        $help_settings['display_help_articles'] = isset($help_settings['display_help_articles']) ? json_decode($help_settings['display_help_articles']) : array();
 
         $data['for_search_help_categories'] = array();
-        $data['for_display_help_categories'] = array();
-        $results = $this->model_extension_module_help_nik->getHelpCategories();
+        $data['for_display_help_articles'] = array();
+        $categories = $this->model_extension_module_help_nik->getHelpCategories();
 
-        foreach ($results as $result) {
-            if ( !in_array($result['help_category_id'], $help_settings['search_help_categories']) ) {
+        foreach ($categories as $category) {
+            if ( !in_array($category['help_category_id'], $help_settings['search_help_categories']) ) {
                 $data['for_search_help_categories'][] = array(
-                    'help_category_id' => $result['help_category_id'],
-                    'title' => $result['title'],
+                    'help_category_id' => $category['help_category_id'],
+                    'title' => $category['title'],
                 );
             }
         }
 
-        foreach ($results as $result) {
-            if ( !in_array($result['help_category_id'], $help_settings['display_help_categories']) ) {
-                $data['for_display_help_categories'][] = array(
-                    'help_category_id' => $result['help_category_id'],
-                    'title' => $result['title'],
-                );
+        foreach ($categories as $category) {
+            $help_articles = $this->model_extension_module_help_nik->getHelpArticlesByParent($category['help_category_id']);
+            $not_added_help_articles = array();
+
+            foreach ($help_articles as $help_article) {
+                if ( !in_array($help_article['help_article_id'], $help_settings['display_help_articles']) ) {
+                    $not_added_help_articles[] = $help_article;
+                }
             }
+
+            $data['for_display_help_categories'][] = array(
+                'help_category_id' => $category['help_category_id'],
+                'title' => $category['title'],
+                'help_articles' => $not_added_help_articles
+            );
         }
 
         $data['search_help_categories'] = array();
@@ -955,14 +962,14 @@ class ControllerExtensionModuleHelpNik extends Controller {
             );
         }
 
-        $data['display_help_categories'] = array();
+        $data['display_help_articles'] = array();
 
-        foreach ($help_settings['display_help_categories'] as $display_help_category) {
-            $help_category = $this->model_extension_module_help_nik->getHelpCategoryDescription($display_help_category);
-            $help_category = $help_category[$this->config->get('config_language_id')];
-            $data['display_help_categories'][] = array(
-                'help_category_id' => $display_help_category,
-                'title'            => $help_category['title']
+        foreach ($help_settings['display_help_articles'] as $display_help_article) {
+            $help_article = $this->model_extension_module_help_nik->getHelpArticleInfo($display_help_article);
+            $data['display_help_articles'][] = array(
+                'help_article_id' => $display_help_article,
+                'help_category_id'=> $help_article['help_category_id'],
+                'title'           => $help_article['title']
             );
         }
 

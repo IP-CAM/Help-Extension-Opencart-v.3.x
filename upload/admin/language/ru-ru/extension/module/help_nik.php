@@ -22,6 +22,8 @@ $_['text_edit_support']= 'Изменить блок поддержки';
 $_['text_help_settings_form'] = 'Изменить настройки справки';
 $_['text_added_help_categories'] = 'Добавленные категории';
 $_['text_not_added_help_categories'] = 'Не добавленные категории';
+$_['text_added_help_articles'] = 'Добавленные статьи';
+$_['text_not_added_help_articles'] = 'Не добавленные статьи';
 
 // Entry
 $_['entry_name']       = 'Название модуля';
@@ -67,7 +69,7 @@ $_['entry_image']            = 'Изображение';
 $_['entry_title']            = 'Заголовок';
 $_['entry_parent']           = 'Родительская категория';
 $_['entry_categories_under_search'] = 'Категории под поиском';
-$_['entry_categories_display'] = 'Отображаемые в справке категории ';
+$_['entry_articles_display'] = 'Отображаемые в справке статьи';
 
 // Buttons
 $_['button_add_support']   = 'Добавить блок поддержки';
