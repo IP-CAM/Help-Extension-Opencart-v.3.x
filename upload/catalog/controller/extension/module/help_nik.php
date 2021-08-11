@@ -3,7 +3,43 @@ class ControllerExtensionModuleHelpNik extends Controller {
 	public function index() {
 		$this->load->language('extension/module/help_nik');
 		$this->load->model('extension/module/help_nik');
-		$this->load->model('tool/image');
+        $this->load->model('setting/setting');
+
+        $data['breadcrumbs'] = array();
+
+        $data['breadcrumbs'][] = array(
+            'text' => $this->language->get('text_home'),
+            'href' => $this->url->link('common/home')
+        );
+
+        $data['faq'] = $this->url->link('extension/module/help_nik/faq', '', true);
+
+        $settings = $this->model_setting_setting->getSetting('module_help_nik', $this->config->get('config_store_id'));
+
+        $display_help_articles = array();
+        $data['display_help_articles'] = array();
+
+        if(isset($settings['module_help_nik_display_articles']) && !empty($settings['module_help_nik_display_articles'])) {
+            foreach ($settings['module_help_nik_display_articles'] as $display_help_article) {
+                $display_help_articles[] = $this->model_extension_module_help_nik->getHelpArticle($display_help_article);
+            }
+
+            foreach ($display_help_articles as $display_help_article) {
+                $data['display_help_articles'][] = array(
+                    'help_article_id' => $display_help_article['help_article_id'],
+                    'title'           => $display_help_article['title'],
+                    'description'     => html_entity_decode($display_help_article['description']),
+                );
+            }
+        }
+
+        return $this->load->view('extension/module/help_module_nik', $data);
+	}
+
+	public function help() {
+        $this->load->language('extension/module/help_nik');
+        $this->load->model('extension/module/help_nik');
+        $this->load->model('tool/image');
 
         $data['breadcrumbs'] = array();
 
@@ -59,7 +95,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $data['header'] = $this->load->controller('common/header');
 
         $this->response->setOutput($this->load->view('extension/module/help_nik', $data));
-	}
+    }
 
 	public function faq() {
         $this->load->language('extension/module/help_nik');
@@ -86,7 +122,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $data['breadcrumbs'][] = array(
             'text' => $this->language->get('text_certificate'),
-            'href' => $this->url->link('extension/module/help_nik', $url)
+            'href' => $this->url->link('extension/module/help_nik/help', $url)
         );
 
         $data['search_help_categories'] = $this->getUnderSearchCategories();

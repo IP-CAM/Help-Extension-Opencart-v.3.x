@@ -6,6 +6,18 @@
   .add-material-btn {
     margin: 10px 0;
   }
+  .help-categories-block {
+    padding: 10px;
+  }
+  .help-category-block-item {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px solid grey;
+    margin: 5px 0;
+    padding: 5px;
+  }
 </style>
 {{ column_left }}
 <div id="content">
@@ -176,9 +188,93 @@
               </tbody>
             </table>
           </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-title">{{ entry_articles_display_module }}</label>
+            <div class="col-sm-10">
+              <div class="col-sm-6">
+                <h4>{{ text_not_added_help_articles }}</h4>
+                <div class="help-categories-block not-added-help-display-categories-block">
+                  {% for help_category in for_display_help_categories %}
+                    <a data-toggle="collapse" style="display: block; color: black; font-size: 15px; margin: 10px 0;" href="#collapseExample{{ help_category.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ help_category.help_category_id }}">
+                      {{ help_category.title }}
+                      <i class="fa fa-arrow-down"></i>
+                    </a>
+                    <div class="collapse" id="collapseExample{{ help_category.help_category_id }}">
+                      {% for help_article in help_category.help_articles %}
+                        <div class="help-category-block-item">
+                          <span>{{ help_article.title }}</span>
+                          <button class="btn btn-success" type="button" data-help-category-id="{{ help_category.help_category_id }}" data-help-article-id="{{ help_article.help_article_id }}" data-help-article-title="{{ help_article.title }}"><i class="fa fa-plus"></i></button>
+                        </div>
+                      {% endfor %}
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+              <div class="col-sm-6">
+                <h4>{{ text_added_help_articles }}</h4>
+                <div class="help-categories-block added-help-display-categories-block">
+                  {% for display_help_article in display_help_articles %}
+                    <div class="help-category-block-item">
+                      <span>{{ display_help_article.title }}</span>
+                      <input type="hidden" name="module_help_nik_display_articles[]" value="{{ display_help_article.help_article_id }}" data-help-article-title="{{ display_help_article.title }}" data-help-category-id="{{ display_help_article.help_category_id }}">
+                      <button type="button" class="btn btn-danger"><i class="fa fa-trash"></i></button>
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="col-sm-2 control-label" for="input-status">{{ entry_status }}</label>
+            <div class="col-sm-10">
+              <select name="module_help_nik_status" id="input-status" class="form-control">
+                {% if module_help_nik_status %}
+                  <option value="1" selected="selected">{{ text_enabled }}</option>
+                  <option value="0">{{ text_disabled }}</option>
+                {% else %}
+                  <option value="1">{{ text_enabled }}</option>
+                  <option value="0" selected="selected">{{ text_disabled }}</option>
+                {% endif %}
+              </select>
+            </div>
+          </div>
         </div>
       </div>
     </form>
   </div>
 </div>
+<script>
+    $('.not-added-help-display-categories-block').delegate('.btn-success', 'click', function () {
+        let helpCategoryId = $(this).attr('data-help-category-id')
+        let helpArticleId = $(this).attr('data-help-article-id')
+        let helpArticleTitle = $(this).attr('data-help-article-title')
+
+        let html = '';
+        html =  '<div class="help-category-block-item">\n' +
+            '   <span>' + helpArticleTitle + '</span>\n' +
+            '   <input type="hidden" name="module_help_nik_display_articles[]" value="' + helpArticleId + '" data-help-article-title="' + helpArticleTitle + '" data-help-category-id="' + helpCategoryId + '">\n' +
+            '   <button type="button" class="btn btn-danger"><i class="fa fa-trash"></i></button>\n' +
+            '</div>'
+
+        $('.added-help-display-categories-block').append(html)
+
+        $(this).parent().remove()
+    })
+    $('.added-help-display-categories-block').delegate('.btn-danger', 'click', function() {
+        let helpCategoryId = $(this).parent().find('input').attr('data-help-category-id')
+        let helpArticleId = $(this).parent().find('input').val()
+        let helpArticleTitle = $(this).parent().find('input').attr('data-help-article-title')
+
+        let html = ''
+
+        html =  '<div class="help-category-block-item">\n' +
+            '   <span>' + helpArticleTitle + '</span>\n' +
+            '   <button type="button" class="btn btn-success" data-help-article-title="' + helpArticleTitle + '" data-help-category-id="' + helpCategoryId +'" data-help-article-id="' + helpArticleId +'"><i class="fa fa-plus"></i></button>\n' +
+            '</div>'
+
+        $('.not-added-help-display-categories-block #collapseExample' + helpCategoryId).append(html)
+
+        $(this).parent().remove();
+    });
+</script>
 {{ footer }}

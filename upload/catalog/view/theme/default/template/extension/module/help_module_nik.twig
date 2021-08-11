@@ -1,0 +1,15 @@
+<h2>{{ text_faq_module }}</h2>
+<a href="{{ faq }}">{{ text_all_questions }}</a>
+
+<div class="display-help-articles">
+  {% for help_article in display_help_articles %}
+    <a data-toggle="collapse" style="color: #000;" href="#collapseExample{{ help_article.help_article_id }}{{ help_article.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ help_article.help_article_id }}{{ help_article.help_category_id }}">
+      {{ help_article.title }}
+      <i class="fa fa-arrow-right"></i>
+    </a>
+    <div class="collapse" id="collapseExample{{ help_article.help_article_id }}{{ help_article.help_category_id }}">
+      {{ help_article.description }}
+    </div>
+    <br>
+  {% endfor %}
+</div>

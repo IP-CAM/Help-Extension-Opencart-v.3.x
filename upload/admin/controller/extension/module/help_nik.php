@@ -9,6 +9,16 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $this->load->model('extension/module/help_nik');
 
+        $this->load->model('setting/setting');
+
+        if (($this->request->server['REQUEST_METHOD'] == 'POST') && $this->validate()) {
+            $this->model_setting_setting->editSetting('module_help_nik', $this->request->post);
+
+            $this->session->data['success'] = $this->language->get('text_success');
+
+            $this->response->redirect($this->url->link('marketplace/extension', 'user_token=' . $this->session->data['user_token'] . '&type=module', true));
+        }
+
 		$this->getList();
 	}
 
@@ -399,6 +409,51 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $data['sort_article_title'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=had.title' . $url, true);
         $data['sort_article_sort_order'] = $this->url->link('extension/module/help_nik', 'user_token=' . $this->session->data['user_token'] . '&sort=ha.sort_order' . $url, true);
+
+        if (isset($this->request->post['module_help_nik_display_articles'])) {
+            $data['module_help_nik_display_articles'] = $this->request->post['module_help_nik_display_articles'];
+        } else if ($this->config->get('module_help_nik_display_articles')) {
+            $data['module_help_nik_display_articles'] = $this->config->get('module_help_nik_display_articles');
+        } else {
+            $data['module_help_nik_display_articles'] = array();
+        }
+
+        $data['for_display_help_articles'] = array();
+        $categories = $this->model_extension_module_help_nik->getHelpCategories();
+
+        foreach ($categories as $category) {
+            $help_articles = $this->model_extension_module_help_nik->getHelpArticlesByParent($category['help_category_id']);
+            $not_added_help_articles = array();
+
+            foreach ($help_articles as $help_article) {
+                if ( !in_array($help_article['help_article_id'], $data['module_help_nik_display_articles']) ) {
+                    $not_added_help_articles[] = $help_article;
+                }
+            }
+
+            $data['for_display_help_categories'][] = array(
+                'help_category_id' => $category['help_category_id'],
+                'title' => $category['title'],
+                'help_articles' => $not_added_help_articles
+            );
+        }
+
+        $data['display_help_articles'] = array();
+
+        foreach ($data['module_help_nik_display_articles'] as $display_help_article) {
+            $help_article = $this->model_extension_module_help_nik->getHelpArticleInfo($display_help_article);
+            $data['display_help_articles'][] = array(
+                'help_article_id' => $display_help_article,
+                'help_category_id'=> $help_article['help_category_id'],
+                'title'           => $help_article['title']
+            );
+        }
+
+        if (isset($this->request->post['module_help_nik_status'])) {
+            $data['module_help_nik_status'] = $this->request->post['module_help_nik_status'];
+        } else {
+            $data['module_help_nik_status'] = $this->config->get('module_help_nik_status');
+        }
 
         $filter_data = array(
             'sort'  => $sort,

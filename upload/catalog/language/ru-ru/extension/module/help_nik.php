@@ -8,3 +8,4 @@ $_['text_certificate'] = 'Справка';
 $_['text_faq']         = 'FAQ';
 $_['text_help_search'] = 'Поиск';
 $_['text_all_questions'] = 'Все вопросы';
+$_['text_faq_module']  = 'Часто задаваемые вопросы';

@@ -70,6 +70,7 @@ $_['entry_title']            = 'Заголовок';
 $_['entry_parent']           = 'Родительская категория';
 $_['entry_categories_under_search'] = 'Категории под поиском';
 $_['entry_articles_display'] = 'Отображаемые в справке статьи';
+$_['entry_articles_display_module'] = 'Отображаемые в модуле статьи';
 
 // Buttons
 $_['button_add_support']   = 'Добавить блок поддержки';
