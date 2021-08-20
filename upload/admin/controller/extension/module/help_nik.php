@@ -1187,7 +1187,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
                 $this->error['title'][$language_id] = $this->language->get('error_title_support');
             }
 
-            if ((utf8_strlen($value['description']) < 1) || (utf8_strlen($value['description']) > 255)) {
+            if ((utf8_strlen($value['description']) < 1)) {
                 $this->error['description'][$language_id] = $this->language->get('error_description');
             }
 
