@@ -433,10 +433,13 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
             $data['for_display_help_categories'][] = array(
                 'help_category_id' => $category['help_category_id'],
+                'parent_id' => $category['parent_id'],
                 'title' => $category['title'],
                 'help_articles' => $not_added_help_articles
             );
         }
+
+        $data['for_display_help_categories'] = $this->buildTree($data['for_display_help_categories']);
 
         $data['display_help_articles'] = array();
 
@@ -495,6 +498,8 @@ class ControllerExtensionModuleHelpNik extends Controller {
                 'delete'                => $this->url->link('extension/module/help_nik/deleteArticle', 'user_token=' . $this->session->data['user_token'] . '&help_article_id=' . $result['help_article_id'], true)
             );
         }
+
+        $data['module_help_nik_module_link'] = HTTPS_CATALOG . 'index.php?route=extension/module/help_nik/help';
 
         $data['header'] = $this->load->controller('common/header');
         $data['column_left'] = $this->load->controller('common/column_left');
@@ -1001,10 +1006,13 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
             $data['for_display_help_categories'][] = array(
                 'help_category_id' => $category['help_category_id'],
+                'parent_id' => $category['parent_id'],
                 'title' => $category['title'],
                 'help_articles' => $not_added_help_articles
             );
         }
+
+        $data['for_display_help_categories'] = $this->buildTree($data['for_display_help_categories']);
 
         $data['search_help_categories'] = array();
 
@@ -1077,6 +1085,23 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $this->response->setOutput(json_encode($json));
     }
 
+    private function buildTree(array $elements, $parentId = 0) {
+        $branch = array();
+
+        foreach ($elements as $element) {
+            if ($element['parent_id'] == $parentId) {
+
+                $children = $this->buildTree($elements, $element['help_category_id']);
+                if ($children) {
+                    $element['children'] = $children;
+                }
+                $branch[] = $element;
+            }
+        }
+
+        return $branch;
+    }
+
     public function install() {
         if ($this->user->hasPermission('modify', 'extension/module/help_nik')) {
             $this->load->model('extension/module/help_nik');
@@ -1125,7 +1150,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
                 $this->error['title'][$language_id] = $this->language->get('error_title_support');
             }
 
-            if ((utf8_strlen($value['description']) < 1) || (utf8_strlen($value['description']) > 255)) {
+            if ((utf8_strlen($value['description']) < 1)) {
                 $this->error['description'][$language_id] = $this->language->get('error_description');
             }
 

@@ -88,6 +88,20 @@
                         </div>
                       {% endfor %}
                     </div>
+                    {% for help_category_child in help_category.children %}
+                      <a data-toggle="collapse" style="display: block; color: black; font-size: 15px; margin: 10px 0;" href="#collapseExample{{ help_category_child.help_category_id }}" role="button" aria-expanded="false" aria-controls="collapseExample{{ help_category_child.help_category_id }}">
+                        {{ help_category_child.title }}
+                        <i class="fa fa-arrow-down"></i>
+                      </a>
+                      <div class="collapse" id="collapseExample{{ help_category_child.help_category_id }}">
+                        {% for help_article_child in help_category_child.help_articles %}
+                          <div class="help-category-block-item">
+                            <span>{{ help_article_child.title }}</span>
+                            <button class="btn btn-success" type="button" data-help-category-id="{{ help_category_child.help_category_id }}" data-help-article-id="{{ help_article_child.help_article_id }}" data-help-article-title="{{ help_article_child.title }}"><i class="fa fa-plus"></i></button>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% endfor %}
                   {% endfor %}
                 </div>
               </div>

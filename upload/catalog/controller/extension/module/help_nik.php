@@ -41,6 +41,8 @@ class ControllerExtensionModuleHelpNik extends Controller {
         $this->load->model('extension/module/help_nik');
         $this->load->model('tool/image');
 
+        $this->document->setTitle($this->language->get('heading_title'));
+
         $data['breadcrumbs'] = array();
 
         $data['breadcrumbs'][] = array(
@@ -127,8 +129,9 @@ class ControllerExtensionModuleHelpNik extends Controller {
 
         $data['search_help_categories'] = $this->getUnderSearchCategories();
 
-
         if (isset($this->request->get['help_search'])) {
+            $this->document->setTitle($this->language->get('heading_title'));
+
             $filter_data = array(
                 'filter_title' => $search
             );
@@ -161,6 +164,11 @@ class ControllerExtensionModuleHelpNik extends Controller {
             $data['help_search'] = $search;
         } else if (isset($this->request->get['help_category_id'])) {
             $selected_category = $this->model_extension_module_help_nik->getHelpCategory($this->request->get['help_category_id']);
+
+            $this->document->setTitle($selected_category['meta_title']);
+            $this->document->setDescription($selected_category['meta_description']);
+            $this->document->setKeywords($selected_category['meta_keyword']);
+
             $root_category_id = $this->getRootCategoryId($selected_category);
 
             $data['parents_help_categories_ids'] = $this->getParentsCategoryId($selected_category);
@@ -179,6 +187,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
                 }
             }
         } else {
+            $this->document->setTitle($this->language->get('heading_title'));
             $help_categories = $this->model_extension_module_help_nik->getHelpCategories();
             $data['help_categories'] = $this->buildTree($help_categories);
         }

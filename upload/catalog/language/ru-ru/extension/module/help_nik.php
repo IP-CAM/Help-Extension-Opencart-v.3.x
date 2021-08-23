@@ -1,6 +1,6 @@
 <?php
 // Heading
-$_['heading_title']    = 'Личный кабинет';
+$_['heading_title']    = 'Справка - Поддержка';
 
 // Text
 $_['text_support']     = 'Поддержка';
