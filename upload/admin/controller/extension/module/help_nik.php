@@ -1014,7 +1014,9 @@ class ControllerExtensionModuleHelpNik extends Controller {
             );
         }
 
-        $data['for_display_help_categories'] = $this->buildTree($data['for_display_help_categories']);
+        if(isset($data['for_display_help_categories'])) {
+            $data['for_display_help_categories'] = $this->buildTree($data['for_display_help_categories']);
+        }
 
         $data['search_help_categories'] = array();
 

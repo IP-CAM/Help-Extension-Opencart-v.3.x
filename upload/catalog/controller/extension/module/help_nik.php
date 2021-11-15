@@ -136,7 +136,7 @@ class ControllerExtensionModuleHelpNik extends Controller {
                 'filter_title' => $search
             );
 
-            $help_categories = $this->model_extension_module_help_nik->getHelpCategories($filter_data);
+            $help_categories = $this->model_extension_module_help_nik->getHelpCategoriesBySearch($filter_data);
 
             $root_categories_ids = array();
             $data['parents_help_categories_ids'] = array();
